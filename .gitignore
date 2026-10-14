@@ -107,3 +107,32 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Zewnętrzne assety (Asset Store / paczki) - nie trzymamy ich w repozytorium
+/[Aa]ssets/[Aa]ssetStoreTools*
+/[Aa]ssets/[Tt]hirdParty/
+/[Aa]ssets/[Ee]xternal/
+/[Aa]ssets/[Ss]tarter[Aa]ssets/
+/[Aa]ssets/[Ss]tarter[Aa]ssets.meta
+
+# Duże pliki binarne (modele, tekstury, audio, wideo)
+*.fbx
+*.FBX
+*.blend
+*.obj
+*.psd
+*.tga
+*.tif
+*.exr
+*.hdr
+*.wav
+*.mp3
+*.ogg
+*.mp4
+*.mov
+*.unitypackage
+
+# Ustawienia edytora
+.vscode/
+.idea/
+.DS_Store
