@@ -10,11 +10,20 @@ public class PlayerMovement : MonoBehaviour
     public float gravity = -20f;
     public float standHeight = 1.8f;
     public float crouchHeight = 1.1f;
+    public float turnSpeed = 10f;
+
+    [HideInInspector] public bool topDownMode;
 
     CharacterController controller;
     Animator animator;
     float verticalVelocity;
     bool crouch;
+
+    bool hasTarget;
+    Vector3 target;
+    float stuckTime;
+
+    public bool HasTarget => hasTarget;
 
     void Start()
     {
@@ -22,16 +31,50 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
     }
 
+    public void SetTarget(Vector3 point)
+    {
+        target = point;
+        hasTarget = true;
+        stuckTime = 0f;
+    }
+
+    public void ClearTarget()
+    {
+        hasTarget = false;
+    }
+
     void Update()
     {
         Keyboard kb = Keyboard.current;
+        Vector3 move = Vector3.zero;
 
-        float x = 0f, z = 0f;
-        if (kb.wKey.isPressed) z += 1f;
-        if (kb.sKey.isPressed) z -= 1f;
-        if (kb.dKey.isPressed) x += 1f;
-        if (kb.aKey.isPressed) x -= 1f;
-        Vector3 move = (transform.right * x + transform.forward * z).normalized;
+        if (topDownMode)
+        {
+            if (hasTarget)
+            {
+                Vector3 toTarget = target - transform.position;
+                toTarget.y = 0f;
+                if (toTarget.magnitude < 0.15f)
+                {
+                    hasTarget = false;
+                }
+                else
+                {
+                    move = toTarget.normalized;
+                    Quaternion look = Quaternion.LookRotation(move);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, look, turnSpeed * Time.deltaTime);
+                }
+            }
+        }
+        else
+        {
+            float x = 0f, z = 0f;
+            if (kb.wKey.isPressed) z += 1f;
+            if (kb.sKey.isPressed) z -= 1f;
+            if (kb.dKey.isPressed) x += 1f;
+            if (kb.aKey.isPressed) x -= 1f;
+            move = (transform.right * x + transform.forward * z).normalized;
+        }
 
         if (kb.cKey.wasPressedThisFrame) crouch = !crouch;
         controller.height = crouch ? crouchHeight : standHeight;
@@ -39,13 +82,21 @@ public class PlayerMovement : MonoBehaviour
 
         bool grounded = controller.isGrounded;
         if (grounded && verticalVelocity < 0f) verticalVelocity = -2f;
-        if (grounded && !crouch && kb.spaceKey.wasPressedThisFrame)
+        if (grounded && !crouch && kb.eKey.wasPressedThisFrame)
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
         verticalVelocity += gravity * Time.deltaTime;
 
         Vector3 velocity = move * (crouch ? crouchSpeed : speed);
         velocity.y = verticalVelocity;
         controller.Move(velocity * Time.deltaTime);
+
+        if (hasTarget)
+        {
+            Vector3 real = controller.velocity;
+            real.y = 0f;
+            stuckTime = real.magnitude < 0.1f ? stuckTime + Time.deltaTime : 0f;
+            if (stuckTime > 0.5f) hasTarget = false;
+        }
 
         animator.SetBool("IsMoving", move != Vector3.zero);
         animator.SetBool("IsCrouching", crouch);
