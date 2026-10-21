@@ -136,3 +136,6 @@ InitTestScene*.unity*
 .vscode/
 .idea/
 .DS_Store
+
+# Modele postaci (Mixamo)
+!/Assets/Characters/*.fbx
