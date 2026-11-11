@@ -6,6 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
     public float speed = 3f;
     public float crouchSpeed = 1.5f;
+    public float aimSpeed = 1.5f;
     public float jumpHeight = 1.2f;
     public float gravity = -20f;
     public float standHeight = 1.8f;
@@ -86,7 +87,11 @@ public class PlayerMovement : MonoBehaviour
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
         verticalVelocity += gravity * Time.deltaTime;
 
-        Vector3 velocity = move * (crouch ? crouchSpeed : speed);
+        bool aiming = !topDownMode && Mouse.current.rightButton.isPressed;
+        float currentSpeed = crouch ? crouchSpeed : speed;
+        if (aiming) currentSpeed = Mathf.Min(currentSpeed, aimSpeed);
+
+        Vector3 velocity = move * currentSpeed;
         velocity.y = verticalVelocity;
         controller.Move(velocity * Time.deltaTime);
 

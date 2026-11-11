@@ -7,8 +7,12 @@ public class PlayerCamera : MonoBehaviour
     public float zoomSpeed = 0.5f;
     public float minDistance = 1.5f;
     public float maxDistance = 8f;
+    public float aimDistance = 1.8f;
+    public float aimSide = 0.8f;
 
     float distance = 3.5f;
+    float current = 3.5f;
+    float side;
 
     void Start()
     {
@@ -24,7 +28,12 @@ public class PlayerCamera : MonoBehaviour
 
         float scroll = mouse.scroll.ReadValue().y;
         distance = Mathf.Clamp(distance - scroll * zoomSpeed, minDistance, maxDistance);
-        transform.localPosition = new Vector3(0f, 1f + distance * 0.3f, -distance);
-        transform.LookAt(transform.parent.position + Vector3.up * 1.5f);
+
+        bool aiming = mouse.rightButton.isPressed;
+        current = Mathf.Lerp(current, aiming ? aimDistance : distance, 10f * Time.deltaTime);
+        side = Mathf.Lerp(side, aiming ? aimSide : 0f, 10f * Time.deltaTime);
+
+        transform.localPosition = new Vector3(side, 1f + current * 0.3f, -current);
+        transform.LookAt(transform.parent.position + transform.parent.right * side + Vector3.up * 1.5f);
     }
 }
