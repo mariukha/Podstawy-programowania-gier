@@ -12,6 +12,7 @@ public class PlayerShooting : MonoBehaviour
     public float bulletSpeed = 40f;
 
     PlayerMovement player;
+    PlayerInteraction interaction;
     Animator animator;
     Collider playerCollider;
     bool aiming;
@@ -20,6 +21,7 @@ public class PlayerShooting : MonoBehaviour
     void Start()
     {
         player = GetComponent<PlayerMovement>();
+        interaction = GetComponent<PlayerInteraction>();
         playerCollider = GetComponent<Collider>();
         animator = GetComponentInChildren<Animator>();
         gun.SetActive(false);
@@ -28,7 +30,7 @@ public class PlayerShooting : MonoBehaviour
     void Update()
     {
         Mouse mouse = Mouse.current;
-        aiming = !player.topDownMode && mouse.rightButton.isPressed;
+        aiming = !player.topDownMode && mouse.rightButton.isPressed && (interaction == null || !interaction.IsBusy);
         gun.SetActive(aiming);
         animator.SetLayerWeight(1, Mathf.MoveTowards(animator.GetLayerWeight(1), aiming ? 1f : 0f, 8f * Time.deltaTime));
 
