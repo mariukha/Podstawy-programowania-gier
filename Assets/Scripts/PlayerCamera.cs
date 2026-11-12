@@ -9,10 +9,13 @@ public class PlayerCamera : MonoBehaviour
     public float maxDistance = 8f;
     public float aimDistance = 1.8f;
     public float aimSide = 0.8f;
+    public float minPitch = -20f;
+    public float maxPitch = 60f;
 
     float distance = 3.5f;
     float current = 3.5f;
     float side;
+    float pitch = 10f;
 
     void Start()
     {
@@ -23,8 +26,9 @@ public class PlayerCamera : MonoBehaviour
     {
         Mouse mouse = Mouse.current;
 
-        float mouseX = mouse.delta.ReadValue().x;
-        transform.parent.Rotate(0f, mouseX * mouseSensitivity, 0f);
+        Vector2 delta = mouse.delta.ReadValue();
+        transform.parent.Rotate(0f, delta.x * mouseSensitivity, 0f);
+        pitch = Mathf.Clamp(pitch - delta.y * mouseSensitivity, minPitch, maxPitch);
 
         float scroll = mouse.scroll.ReadValue().y;
         distance = Mathf.Clamp(distance - scroll * zoomSpeed, minDistance, maxDistance);
@@ -33,7 +37,9 @@ public class PlayerCamera : MonoBehaviour
         current = Mathf.Lerp(current, aiming ? aimDistance : distance, 10f * Time.deltaTime);
         side = Mathf.Lerp(side, aiming ? aimSide : 0f, 10f * Time.deltaTime);
 
-        transform.localPosition = new Vector3(side, 1f + current * 0.3f, -current);
-        transform.LookAt(transform.parent.position + transform.parent.right * side + Vector3.up * 1.5f);
+        Quaternion rotation = Quaternion.Euler(pitch, 0f, 0f);
+        Vector3 pivot = new Vector3(side, 1.5f, 0f);
+        transform.localRotation = rotation;
+        transform.localPosition = pivot + rotation * new Vector3(0f, 0f, -current);
     }
 }

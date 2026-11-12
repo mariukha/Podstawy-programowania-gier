@@ -40,7 +40,7 @@ public class TopDownCamera : MonoBehaviour
         Keyboard kb = Keyboard.current;
         Mouse mouse = Mouse.current;
 
-        if (kb.spaceKey.wasPressedThisFrame) SetMode(!active);
+        if (kb.vKey.wasPressedThisFrame) SetMode(!active);
         if (!active) return;
 
         Vector3 dir = Vector3.zero;

@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     public float speed = 3f;
+    public float sprintSpeed = 6f;
     public float crouchSpeed = 1.5f;
     public float aimSpeed = 1.5f;
     public float jumpHeight = 1.2f;
@@ -14,6 +15,7 @@ public class PlayerMovement : MonoBehaviour
     public float turnSpeed = 10f;
 
     [HideInInspector] public bool topDownMode;
+    [HideInInspector] public bool locked;
 
     CharacterController controller;
     Animator animator;
@@ -77,19 +79,23 @@ public class PlayerMovement : MonoBehaviour
             move = (transform.right * x + transform.forward * z).normalized;
         }
 
+        if (locked) move = Vector3.zero;
+
         if (kb.cKey.wasPressedThisFrame) crouch = !crouch;
         controller.height = crouch ? crouchHeight : standHeight;
         controller.center = new Vector3(0f, controller.height / 2f, 0f);
 
         bool grounded = controller.isGrounded;
         if (grounded && verticalVelocity < 0f) verticalVelocity = -2f;
-        if (grounded && !crouch && kb.eKey.wasPressedThisFrame)
+        if (grounded && !crouch && !locked && kb.spaceKey.wasPressedThisFrame)
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
         verticalVelocity += gravity * Time.deltaTime;
 
         bool aiming = !topDownMode && Mouse.current.rightButton.isPressed;
         float currentSpeed = crouch ? crouchSpeed : speed;
         if (aiming) currentSpeed = Mathf.Min(currentSpeed, aimSpeed);
+        bool sprint = kb.leftShiftKey.isPressed && !crouch && !aiming && move != Vector3.zero;
+        if (sprint) currentSpeed = sprintSpeed;
 
         Vector3 velocity = move * currentSpeed;
         velocity.y = verticalVelocity;
@@ -106,5 +112,6 @@ public class PlayerMovement : MonoBehaviour
         animator.SetBool("IsMoving", move != Vector3.zero);
         animator.SetBool("IsCrouching", crouch);
         animator.SetBool("IsGrounded", grounded);
+        animator.speed = sprint ? 1.7f : 1f;
     }
 }
