@@ -37,7 +37,7 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: 2207673108037654559}
-    m_Position: {x: 411.96362, y: 315.5177, z: 0}
+    m_Position: {x: 410, y: 320, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -242,7 +242,7 @@ AnimatorController:
   - serializedVersion: 5
     m_Name: Carry
     m_StateMachine: {fileID: -6672185567393213684}
-    m_Mask: {fileID: 31900000, guid: ad53a7614b10d4dbb86cf0f8c2a70147, type: 2}
+    m_Mask: {fileID: 31900000, guid: 50b512c44c554f17b49c6e044e84fea2, type: 2}
     m_Motions: []
     m_Behaviours: []
     m_BlendingMode: 0
