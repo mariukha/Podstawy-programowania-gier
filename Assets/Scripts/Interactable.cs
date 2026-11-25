@@ -6,7 +6,7 @@ public class Interactable : MonoBehaviour
 {
     public string displayName = "Kostka";
     public string message = "Podniesiono kostkę!";
-    public float followSpeed = 25f;
+    [Min(0.1f)] public float maxFollowSpeed = 5f;
     public float maxHoldDistance = 3f;
 
     public static readonly List<Interactable> All = new List<Interactable>();
@@ -15,6 +15,9 @@ public class Interactable : MonoBehaviour
     Collider[] colliders;
     Transform holdPoint;
     Collider holder;
+    Vector3 pickupOffset;
+    Quaternion pickupRotation;
+    float minimumReach;
 
     public bool IsHeld => holdPoint != null;
 
@@ -39,7 +42,13 @@ public class Interactable : MonoBehaviour
     {
         holdPoint = point;
         holder = player;
-        rb.useGravity = false;
+        pickupRotation = Quaternion.Inverse(point.rotation) * rb.rotation;
+        minimumReach = player.bounds.extents.x + colliders[0].bounds.extents.z;
+        pickupOffset = Quaternion.Inverse(point.rotation) * (rb.position - GripPosition());
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.isKinematic = true;
+        rb.interpolation = RigidbodyInterpolation.None;
         foreach (Collider c in colliders) Physics.IgnoreCollision(c, player, true);
     }
 
@@ -49,7 +58,8 @@ public class Interactable : MonoBehaviour
             foreach (Collider c in colliders) Physics.IgnoreCollision(c, holder, false);
         holdPoint = null;
         holder = null;
-        rb.useGravity = true;
+        rb.isKinematic = false;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
     }
 
     public bool TooFar()
@@ -57,11 +67,27 @@ public class Interactable : MonoBehaviour
         return IsHeld && Vector3.Distance(rb.position, holdPoint.position) > maxHoldDistance;
     }
 
-    void FixedUpdate()
+    Vector3 GripPosition()
     {
-        if (!IsHeld) return;
-        rb.linearVelocity = (holdPoint.position - rb.position) * followSpeed;
-        rb.angularVelocity = Vector3.zero;
-        rb.MoveRotation(Quaternion.Slerp(rb.rotation, holdPoint.rotation, 10f * Time.fixedDeltaTime));
+        Vector3 forward = holder.transform.forward;
+        float reach = Vector3.Dot(holdPoint.position - holder.bounds.center, forward);
+        return holdPoint.position + forward * Mathf.Max(0f, minimumReach - reach);
+    }
+
+    public void FollowHands()
+    {
+
+        pickupOffset = Vector3.MoveTowards(pickupOffset, Vector3.zero, maxFollowSpeed * Time.deltaTime);
+        pickupRotation = Quaternion.RotateTowards(pickupRotation, Quaternion.identity, 360f * Time.deltaTime);
+        Vector3 target = GripPosition() + holdPoint.rotation * pickupOffset;
+        Vector3 step = target - rb.position;
+        float distance = step.magnitude;
+        if (distance > 0f && rb.SweepTest(step / distance, out RaycastHit hit, distance, QueryTriggerInteraction.Ignore)
+            && hit.collider != holder)
+        {
+            target = rb.position + step.normalized * Mathf.Max(0f, hit.distance - Physics.defaultContactOffset);
+        }
+        rb.position = target;
+        rb.rotation = holdPoint.rotation * pickupRotation;
     }
 }

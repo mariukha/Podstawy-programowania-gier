@@ -79,7 +79,8 @@ public class PlayerInteraction : MonoBehaviour
             held = null;
         }
 
-        float carry = Mathf.MoveTowards(animator.GetLayerWeight(carryLayer), held != null ? 1f : 0f, 4f * Time.deltaTime);
+        bool carrying = held != null && lockTimer <= 0f;
+        float carry = Mathf.MoveTowards(animator.GetLayerWeight(carryLayer), carrying ? 1f : 0f, 4f * Time.deltaTime);
         animator.SetLayerWeight(carryLayer, carry);
 
         if (lockTimer > 0f) lockTimer -= Time.deltaTime;
@@ -92,6 +93,7 @@ public class PlayerInteraction : MonoBehaviour
     {
         holdPoint.position = (leftHand.position + rightHand.position) / 2f + transform.forward * 0.05f;
         holdPoint.rotation = transform.rotation;
+        if (held != null) held.FollowHands();
     }
 
     Interactable FindTarget()
